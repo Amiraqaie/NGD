@@ -1,4 +1,4 @@
-name: Docker Image CI
+name: Docker Image CI with Build Cache
 
 on:
   push:
@@ -7,12 +7,37 @@ on:
     branches: [ "main" ]
 
 jobs:
-
-  build:
-
+  build-and-push:
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
 
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build ./DockerFile/ --file ./DockerFile/Dockerfile --tag ngd/simuldation:$(date +%s)
+      # 1️⃣ دریافت سورس کد
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2️⃣ آماده‌سازی ابزار Buildx (برای کش و ویژگی‌های پیشرفته)
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      # 3️⃣ لاگین به Docker Hub با استفاده از secretهای محافظت‌شده
+      - name: Log in to Docker Hub
+        uses: docker/login-action@v3
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+
+      # 4️⃣ بیلد با کش و پوش خودکار به Docker Hub
+      - name: Build and Push Docker Image (with cache)
+        uses: docker/build-push-action@v6
+        with:
+          context: ./DockerFile
+          file: ./DockerFile/Dockerfile
+          push: true
+          tags: |
+            ngd/simuldation:latest
+            ngd/simuldation:${{ github.run_number }}
+          cache-from: type=gha
+          cache-to: type=gha,mode=max

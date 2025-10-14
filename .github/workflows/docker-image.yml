@@ -8,28 +8,28 @@ on:
 
 jobs:
   build-and-push:
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     permissions:
       contents: read
       packages: write
 
     steps:
-      # 1️⃣ دریافت سورس کد
+      # 1️⃣ Checkout repository
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # 2️⃣ آماده‌سازی ابزار Buildx (برای کش و ویژگی‌های پیشرفته)
+      # 2️⃣ Set up Docker Buildx (for multi-platform and caching)
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
 
-      # 3️⃣ لاگین به Docker Hub با استفاده از secretهای محافظت‌شده
+      # 3️⃣ Log in to Docker Hub (or GHCR)
       - name: Log in to Docker Hub
         uses: docker/login-action@v3
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 4️⃣ بیلد با کش و پوش خودکار به Docker Hub
+      # 4️⃣ Build and push image
       - name: Build and Push Docker Image (with cache)
         uses: docker/build-push-action@v6
         with:
@@ -37,7 +37,11 @@ jobs:
           file: ./DockerFile/Dockerfile
           push: true
           tags: |
-            ngd/simuldation:latest
-            ngd/simuldation:${{ github.run_number }}
+            ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:${{ github.run_number }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          
+      # 5️⃣ (Optional) Print image digest
+      - name: Image digest
+        run: echo "Image pushed with digest ${{ steps.build-and-push.outputs.digest }}"

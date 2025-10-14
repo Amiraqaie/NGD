@@ -24,8 +24,19 @@ WORKDIR /root/ros2_ws/src
 SHELL ["/bin/bash", "-c"]
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
 
+# change to workspace src directory
+WORKDIR /root
+
 # download px4 autopilot recursively
 RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
+
+# setup ubuntu toolchain
+RUN bash PX4-Autopilot/Tools/setup/ubuntu.sh
+
+# change simulation to gazebo classic
+RUN apt remove gz-harmonic
+RUN apt install aptitude
+RUN aptitude install gazebo libgazebo11 libgazebo-dev
 
 # Default command
 CMD ["/bin/bash"]

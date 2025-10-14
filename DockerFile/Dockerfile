@@ -30,8 +30,22 @@ WORKDIR /root
 # download px4 autopilot recursively
 RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
 
+# install bash and some requirements
+RUN apt-get update && apt-get install -y bash
+RUN apt-get update && apt-get install -y \
+    build-essential \
+    cmake \
+    ninja-build \
+    python3-venv \
+    python3-pip \
+    wget \
+    unzip \
+    zip \
+    && rm -rf /var/lib/apt/lists/*
+SHELL ["/bin/bash", "-c"]
+
 # setup ubuntu toolchain
-RUN bash PX4-Autopilot/Tools/setup/ubuntu.sh
+RUN bash /root/PX4-Autopilot/Tools/setup/ubuntu.sh
 
 # change simulation to gazebo classic
 RUN apt remove gz-harmonic

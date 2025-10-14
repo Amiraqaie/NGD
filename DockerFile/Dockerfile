@@ -48,9 +48,9 @@ SHELL ["/bin/bash", "-c"]
 RUN bash /root/PX4-Autopilot/Tools/setup/ubuntu.sh
 
 # change simulation to gazebo classic
-RUN apt remove gz-harmonic
-RUN apt install aptitude
-RUN aptitude install gazebo libgazebo11 libgazebo-dev
+RUN apt remove -y gz-harmonic
+RUN apt install -y aptitude
+RUN aptitude install -y gazebo libgazebo11 libgazebo-dev
 
 # Default command
 CMD ["/bin/bash"]

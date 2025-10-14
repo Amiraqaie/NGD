@@ -17,12 +17,15 @@ RUN apt-get update && apt-get install -y \
     && rm -rf /var/lib/apt/lists/*
 
 # Create a workspace (optional)
-RUN mkdir -p ~/ros2_ws/src
-WORKDIR ~/ros2_ws/src
+RUN mkdir -p /root/ros2_ws/src
+WORKDIR /root/ros2_ws/src
 
 # Source ROS setup automatically
 SHELL ["/bin/bash", "-c"]
 RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+# download px4 autopilot recursively
+RUN git clone https://github.com/PX4/PX4-Autopilot.git --recursive
 
 # Default command
 CMD ["/bin/bash"]

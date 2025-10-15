@@ -42,6 +42,14 @@ jobs:
           cache-from: type=gha
           cache-to: type=gha,mode=max
           
-      # 5️⃣ (Optional) Print image digest
+
+      # 5️⃣ Run PX4 SITL build test inside the container
+      - name: Test PX4 SITL build
+        run: |
+          docker run --rm \
+            ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:latest \
+            bash -c "cd /root/PX4-Autopilot && make px4_sitl gazebo-classic_droneai"
+
+      # 6️⃣ (Optional) Print image digest
       - name: Image digest
-        run: echo "Image pushed with digest ${{ steps.build-and-push.outputs.digest }}"
+        run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"

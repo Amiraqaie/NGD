@@ -17,7 +17,7 @@ def generate_launch_description():
             package='robot_state_publisher',
             executable='robot_state_publisher',
             name='oak_state_publisher',
-            parameters=[{'robot_description': Command(['cat droneai_urdf.urdf']), 'use_sim_time': True}]
+            parameters=[{'robot_description': Command(['cat /root/scripts/droneai_urdf.urdf']), 'use_sim_time': True}]
         )
     ld = LaunchDescription()
     ld.add_action(rsp_node)

@@ -86,6 +86,15 @@ RUN FILE=/opt/ros/humble/share/rtabmap_ros/launch/rtabmap.launch.py && \
 RUN apt install tmux -y
 
 # install MicroXRCE-DDS
+RUN pip install --user -U empy==3.3.4 pyros-genmsg setuptools
+RUN git clone -b v2.4.3 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+WORKDIR /root/Micro-XRCE-DDS-Agent
+RUN mkdir build
+WORKDIR /root/Micro-XRCE-DDS-Agent/build
+RUN cmake ..
+RUN make
+RUN sudo make install
+RUN sudo ldconfig /usr/local/lib/
 
 # Default command
 CMD ["/bin/bash"]

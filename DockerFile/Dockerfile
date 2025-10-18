@@ -111,7 +111,7 @@ RUN pip install --upgrade scipy
 RUN apt-get update && apt-get install -y \
     python3-pip python3-colcon-common-extensions \
     python3-rosdep python3-rosinstall-generator python3-vcstool
-RUN pip3 install -U setuptools ament-package
+RUN pip install -U setuptools ament-package
 
 # install px4_msgs and build
 WORKDIR /root/ros2_ws/src

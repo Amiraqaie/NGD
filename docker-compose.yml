@@ -1,10 +1,8 @@
-version: "3.9"
-
 services:
   px4_simulation:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: px4_simulation
-    command: bash -c "cd /root/PX4-Autopilot && make px4_sitl gazebo-classic_droneai_apt"
+    command: bash -c "cd /root/PX4-Autopilot && make px4_sitl gazebo-classic_droneai__apt"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:

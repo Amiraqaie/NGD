@@ -104,5 +104,8 @@ RUN sudo ldconfig /usr/local/lib/
 WORKDIR /root/PX4-Autopilot
 RUN make -j8 px4_sitl
 
+# upgrade scipy
+RUN pip install --upgrade scipy
+
 # Default command
 CMD ["/bin/bash"]

@@ -75,8 +75,12 @@ RUN FILE=/root/PX4-Autopilot/src/modules/simulation/simulator_mavlink/sitl_targe
 RUN apt install ros-humble-rtabmap-ros ros-humble-nav2-bringup ros-humble-gazebo-ros-* -y
 
 # modify rtabmap.launch.py
-# replace DeclareLaunchArgument('namespace',      default_value='rtabmap',            description='') with DeclareLaunchArgument('namespace',      default_value='',            description='')
-RUN sed -i "s/DeclareLaunchArgument('namespace',\s*default_value='rtabmap',\s*description='')/DeclareLaunchArgument('namespace',      default_value='',            description='')/" /root/ros2_ws/src/rtabmap_ros/launch/rtabmap.launch.py
+RUN FILE=/opt/ros/humble/share/rtabmap_ros/launch/rtabmap.launch.py && \
+    if [ -f "$FILE" ]; then \
+        sed -i "s/DeclareLaunchArgument('namespace',\s*default_value='rtabmap',\s*description='')/DeclareLaunchArgument('namespace', default_value='', description='')/" "$FILE"; \
+    else \
+        echo "⚠️ File not found: $FILE, skipping modification"; \
+    fi
 
 # install tmux
 RUN apt install tmux -y

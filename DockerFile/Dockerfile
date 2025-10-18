@@ -98,7 +98,7 @@ RUN sudo ldconfig /usr/local/lib/
 
 # make px4_sitl and clone neccesory github repos
 WORKDIR /root/PX4-Autopilot
-RUN make px4_sitl
+RUN make px4_sitl gazebo-classic
 
 # Default command
 CMD ["/bin/bash"]

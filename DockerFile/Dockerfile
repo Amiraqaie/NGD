@@ -108,11 +108,11 @@ RUN make -j8 px4_sitl
 RUN pip install --upgrade scipy
 
 # install colcon build tool
-RUN apt-get update && apt-get install -y \
-    python3-pip python3-colcon-common-extensions \
-    python3-rosdep python3-rosinstall-generator python3-vcstool
+RUN apt-get install -y python3-pip python3-colcon-common-extensions 
 
 # install px4_msgs and build
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade setuptools wheel twine check-wheel-contents
 WORKDIR /root/ros2_ws/src
 RUN git clone https://github.com/PX4/px4_msgs.git
 WORKDIR /root/ros2_ws

@@ -107,5 +107,12 @@ RUN make -j8 px4_sitl
 # upgrade scipy
 RUN pip install --upgrade scipy
 
+# install px4_msgs and build
+WORKDIR /root/ros2_ws/src
+RUN git clone https://github.com/PX4/px4_msgs.git
+WORKDIR /root/ros2_ws
+RUN colcon build
+RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+
 # Default command
 CMD ["/bin/bash"]

@@ -116,6 +116,7 @@ RUN apt-get update && apt-get install -y \
 WORKDIR /root/ros2_ws/src
 RUN git clone https://github.com/PX4/px4_msgs.git
 WORKDIR /root/ros2_ws
+RUN source /opt/ros/humble/setup.bash
 RUN colcon build
 RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 

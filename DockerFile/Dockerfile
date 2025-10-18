@@ -116,8 +116,7 @@ RUN python3 -m pip install --upgrade setuptools wheel twine check-wheel-contents
 WORKDIR /root/ros2_ws/src
 RUN git clone https://github.com/PX4/px4_msgs.git
 WORKDIR /root/ros2_ws
-RUN source /opt/ros/humble/setup.bash
-# RUN colcon build
+RUN source /opt/ros/humble/setup.bash && colcon build
 RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 
 # Default command

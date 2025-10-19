@@ -79,7 +79,7 @@ RUN FILE=/root/PX4-Autopilot/src/modules/simulation/simulator_mavlink/sitl_targe
 RUN apt install ros-humble-rtabmap-ros ros-humble-nav2-bringup ros-humble-gazebo-ros-* -y
 
 # modify rtabmap.launch.py
-RUN FILE=/opt/ros/humble/share/rtabmap_ros/launch/rtabmap.launch.py && \
+RUN FILE=/opt/ros/humble/share/rtabmap_launch/launch/rtabmap.launch.py && \
     if [ -f "$FILE" ]; then \
         sed -i "s/DeclareLaunchArgument('namespace',\s*default_value='rtabmap',\s*description='')/DeclareLaunchArgument('namespace', default_value='', description='')/" "$FILE"; \
     else \

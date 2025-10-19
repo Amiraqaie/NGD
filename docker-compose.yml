@@ -36,7 +36,7 @@ services:
   robot_state_publisher:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: robot_state_publisher
-    command: bash -c "ros2 launch /root/scripts/robot_state_publisher.launch.py"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch /root/scripts/robot_state_publisher.launch.py"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -53,7 +53,7 @@ services:
   simulate_uncalibrated_camera:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: simulate_uncalibrated_camera
-    command: bash -c "python3 /root/scripts/simulate_uncalibrated_camera.py"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/simulate_uncalibrated_camera.py"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -70,7 +70,7 @@ services:
   rtabmap:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: rtabmap
-    command: bash -c "ros2 launch rtabmap_launch rtabmap.launch.py  args:='-d  \
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch rtabmap_launch rtabmap.launch.py  args:='-d  \
                       --Vis/MaxFeatures               200   --Kp/MaxFeatures          200   \
                       --Vis/CorType                   0    --Cloud/MinDepth          0.2   \
                       --Cloud/MaxDepth                4.0  --Cloud/VoxelSize         0.05  \
@@ -110,7 +110,7 @@ services:
   nav2_bringup:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: nav2_bringup
-    command: bash -c "ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -127,7 +127,7 @@ services:
   nav2_rviz:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: nav2_rviz
-    command: bash -c "ros2 launch nav2_bringup rviz_launch.py use_sim_time:=True"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch nav2_bringup rviz_launch.py use_sim_time:=True"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -144,7 +144,7 @@ services:
   offboard_script:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: offboard_script
-    command: bash -c "python3 /root/scripts/microxrce_test.py --OffboardControllEnable True  --TakeoffHeight  1.0"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/microxrce_test.py --OffboardControllEnable True  --TakeoffHeight  1.0"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -161,7 +161,7 @@ services:
   rqt:
     image: amiraqaie1376/ngd_simulation:latest
     container_name: rqt
-    command: bash -c "rqt"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && rqt"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:

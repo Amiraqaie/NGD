@@ -69,7 +69,7 @@ class OffboardControll(Node):
 
         # Create Subscribtions nodes
         self.subscriber_vehicle_status = self.create_subscription(VehicleStatus,
-                                                                  '/fmu/out/vehicle_status',
+                                                                  '/fmu/out/vehicle_status_v1',
                                                                   self.vehicle_status_callback,
                                                                   qos_profile1)
         

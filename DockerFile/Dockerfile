@@ -119,5 +119,24 @@ WORKDIR /root/ros2_ws
 RUN source /opt/ros/humble/setup.bash && colcon build
 RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 
+# install openvins prerequirments (ceres 2.0.0)
+RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev
+ENV CERES_VERSION="2.0.0"
+WORKDIR /root/
+RUN git clone https://ceres-solver.googlesource.com/ceres-solver
+WORKDIR /root/ceres-solver
+RUN git checkout tags/${CERES_VERSION}
+RUN mkdir build && cd build
+RUN cmake ..
+RUN make
+RUN make install
+
+# build and install ceres ros2 humble version
+WORKDIR /root/ros2_ws/src
+RUN git clone https://github.com/rpng/open_vins/
+WORKDIR /root/ros2_ws
+RUN find . -type f -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs sed -i 's|#include <tf2_geometry_msgs/tf2_geometry_msgs\.h>|#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>|g'
+RUN source /opt/ros/humble/setup.bash && colcon build
+
 # Default command
 CMD ["/bin/bash"]

@@ -126,7 +126,8 @@ WORKDIR /root/
 RUN git clone https://ceres-solver.googlesource.com/ceres-solver
 WORKDIR /root/ceres-solver
 RUN git checkout tags/${CERES_VERSION}
-RUN mkdir build && cd build
+RUN mkdir build
+WORKDIR /root/ceres-solver/build
 RUN cmake ..
 RUN make
 RUN make install

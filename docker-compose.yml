@@ -174,3 +174,20 @@ services:
     tty: true
     ipc: host
     pid: host
+
+  # openvins:
+  #   image: amiraqaie1376/ngd_simulation:latest
+  #   container_name: px4_simulation
+  #   command: bash -c "cd /root/PX4-Autopilot && HEADLESS=1 make px4_sitl gazebo-classic_droneai__apt"
+  #   environment: 
+  #     - DISPLAY=${DISPLAY}
+  #   volumes:
+  #     - /tmp/.X11-unix:/tmp/.X11-unix
+  #     - ./scripts:/root/scripts
+  #   network_mode: host
+  #   devices:
+  #     - /dev/dri:/dev/dri
+  #   stdin_open: true
+  #   tty: true
+  #   ipc: host
+  #   pid: host

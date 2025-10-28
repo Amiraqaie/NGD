@@ -120,7 +120,7 @@ RUN source /opt/ros/humble/setup.bash && colcon build
 RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 
 # install openvins prerequirments (ceres 2.0.0)
-RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev
+RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libtbb-dev
 ENV CERES_VERSION="2.0.0"
 WORKDIR /root/
 RUN git clone https://ceres-solver.googlesource.com/ceres-solver

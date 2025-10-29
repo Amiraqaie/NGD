@@ -43,7 +43,7 @@ zip \
 SHELL ["/bin/bash", "-c"]
 
 # install rtabmap and nav2 packages and also ros2 gazebo plugins
-RUN apt install ros-humble-rtabmap-ros ros-humble-nav2-bringup ros-humble-gazebo-ros-* -y
+RUN apt-get update && apt-get install ros-humble-rtabmap-ros ros-humble-nav2-bringup ros-humble-gazebo-ros-* -y
 
 # modify rtabmap.launch.py
 RUN FILE=/opt/ros/humble/share/rtabmap_launch/launch/rtabmap.launch.py && \
@@ -60,7 +60,7 @@ RUN apt-get update && apt-get install tmux -y
 RUN pip install --upgrade scipy
 
 # install colcon build tool
-RUN apt-get install -y python3-pip python3-colcon-common-extensions 
+RUN apt-get update && apt-get install -y python3-pip python3-colcon-common-extensions 
 
 # clear chache to reduce image size
 RUN apt-get clean

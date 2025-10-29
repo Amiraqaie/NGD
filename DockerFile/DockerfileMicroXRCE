@@ -9,6 +9,7 @@ ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
 
 # Update and install common tools
+RUN apt update
 RUN apt-get update && apt-get install -y \
     python3-pip \
     vim \
@@ -42,7 +43,7 @@ zip \
 SHELL ["/bin/bash", "-c"]
 
 # install tmux
-RUN apt install tmux -y
+RUN apt-get install tmux -y
 
 # install MicroXRCE-DDS
 RUN pip install --user -U empy==3.3.4 pyros-genmsg setuptools

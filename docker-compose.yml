@@ -1,9 +1,11 @@
+version: "3.8"
+
 services:
   px4_simulation:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/simulation:latest   # PX4-SITL main simulation image
     container_name: px4_simulation
     command: bash -c "cd /root/PX4-Autopilot && HEADLESS=1 make px4_sitl gazebo-classic_droneai__apt"
-    environment: 
+    environment:
       - DISPLAY=${DISPLAY}
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
@@ -17,7 +19,7 @@ services:
     pid: host
 
   xrce_agent:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/microxrce:latest   # Micro XRCE Agent built separately
     container_name: xrce_agent
     command: bash -c "MicroXRCEAgent udp4 -p 8888"
     environment:
@@ -34,7 +36,7 @@ services:
     pid: host
 
   robot_state_publisher:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/rtabmap:latest
     container_name: robot_state_publisher
     command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch /root/scripts/robot_state_publisher.launch.py"
     environment:
@@ -51,7 +53,7 @@ services:
     pid: host
 
   simulate_uncalibrated_camera:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/rtabmap:latest    # OpenVINS or uncalibrated camera simulation
     container_name: simulate_uncalibrated_camera
     command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/simulate_uncalibrated_camera.py"
     environment:
@@ -68,13 +70,13 @@ services:
     pid: host
 
   rtabmap:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/rtabmap:latest     # RtabMap SLAM container
     container_name: rtabmap
-    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch rtabmap_launch rtabmap.launch.py  args:='-d  \
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch rtabmap_launch rtabmap.launch.py  args:='-d \
                       --Vis/MaxFeatures               200   --Kp/MaxFeatures          200   \
                       --Vis/CorType                   0    --Cloud/MinDepth          0.2   \
                       --Cloud/MaxDepth                4.0  --Cloud/VoxelSize         0.05  \
-                      --Cloud/NoiseFilterRadius       0.05  --Cloud/NoiseFilterMinNeighbors   10 \ 
+                      --Cloud/NoiseFilterRadius       0.05  --Cloud/NoiseFilterMinNeighbors   10 \
                       --Optimizer/GravitySigma        0.3   --Grid/MapFrameProjection true  \
                       --Grid/NormalsSegmentation      false --Grid/MaxGroundHeight    0.5   \
                       --Grid/cellSize                 0.1   --Grid/RangeMax           4.0   \
@@ -108,7 +110,7 @@ services:
     pid: host
 
   nav2_bringup:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/rtabmap:latest
     container_name: nav2_bringup
     command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True"
     environment:
@@ -125,7 +127,7 @@ services:
     pid: host
 
   nav2_rviz:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/rtabmap:latest
     container_name: nav2_rviz
     command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch nav2_bringup rviz_launch.py use_sim_time:=True"
     environment:
@@ -142,9 +144,9 @@ services:
     pid: host
 
   offboard_script:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/microxrce:latest   # Offboard control uses MicroXRCE agent
     container_name: offboard_script
-    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/microxrce_test.py --OffboardControllEnable False  --TakeoffHeight  1.0"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/microxrce_test.py --OffboardControllEnable False --TakeoffHeight 1.0"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -159,7 +161,7 @@ services:
     pid: host
 
   rqt:
-    image: amiraqaie1376/ngd_simulation:latest
+    image: amiraqaie1376/rtabmap:latest
     container_name: rqt
     command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && rqt"
     environment:
@@ -174,20 +176,3 @@ services:
     tty: true
     ipc: host
     pid: host
-
-  # openvins:
-  #   image: amiraqaie1376/ngd_simulation:latest
-  #   container_name: px4_simulation
-  #   command: bash -c "cd /root/PX4-Autopilot && HEADLESS=1 make px4_sitl gazebo-classic_droneai__apt"
-  #   environment: 
-  #     - DISPLAY=${DISPLAY}
-  #   volumes:
-  #     - /tmp/.X11-unix:/tmp/.X11-unix
-  #     - ./scripts:/root/scripts
-  #   network_mode: host
-  #   devices:
-  #     - /dev/dri:/dev/dri
-  #   stdin_open: true
-  #   tty: true
-  #   ipc: host
-  #   pid: host

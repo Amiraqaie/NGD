@@ -9,6 +9,7 @@ ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
 
 # Update and install common tools
+RUN apt update
 RUN apt-get update && apt-get install -y \
     python3-pip \
     vim \

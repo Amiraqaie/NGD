@@ -103,6 +103,7 @@ RUN sudo ldconfig /usr/local/lib/
 # make px4_sitl and clone neccesory github repos
 WORKDIR /root/PX4-Autopilot
 RUN make -j8 px4_sitl
+RUN rm -rf /root/PX4-Autopilot/build
 
 # upgrade scipy
 RUN pip install --upgrade scipy
@@ -115,9 +116,6 @@ RUN python3 -m pip install --upgrade pip
 RUN python3 -m pip install --upgrade setuptools wheel twine check-wheel-contents
 WORKDIR /root/ros2_ws/src
 RUN git clone https://github.com/PX4/px4_msgs.git
-WORKDIR /root/ros2_ws
-RUN source /opt/ros/humble/setup.bash && colcon build
-RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
 
 # install openvins prerequirments (ceres 2.0.0)
 RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libtbb-dev
@@ -132,6 +130,12 @@ WORKDIR /root/ceres-solver/build
 RUN cmake ..
 RUN make
 RUN make install
+RUN rm -rf /root/ceres-solver
+
+# clear chache to reduce image size
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
 
 # build and install ceres ros2 humble version
 WORKDIR /root/ros2_ws/src
@@ -139,6 +143,8 @@ RUN git clone https://github.com/rpng/open_vins/
 WORKDIR /root/ros2_ws
 RUN find . -type f -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs sed -i 's|#include <tf2_geometry_msgs/tf2_geometry_msgs\.h>|#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>|g'
 RUN source /opt/ros/humble/setup.bash && colcon build
+RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+RUN rm -rf /root/ros2_ws/build /root/ros2_ws/logs 
 
 # Default command
 CMD ["/bin/bash"]

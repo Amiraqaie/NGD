@@ -1,0 +1,69 @@
+# Use the official OSRF ROS image
+FROM osrf/ros:humble-desktop
+
+# Set environment variables for ROS
+ENV ROS_DISTRO=humble
+ENV ROS_ROOT=/opt/ros/$ROS_DISTRO
+ENV PATH=$ROS_ROOT/bin:$PATH
+ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
+
+# Update and install common tools
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    vim \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a workspace (optional)
+RUN mkdir -p /root/ros2_ws/src
+WORKDIR /root/ros2_ws/src
+
+# Source ROS setup automatically
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+# change to workspace src directory
+WORKDIR /root
+
+# install bash and some requirements
+RUN apt-get update && apt-get install -y bash
+RUN apt-get update && apt-get install -y \
+build-essential \
+cmake \
+ninja-build \
+python3-venv \
+python3-pip \
+wget \
+unzip \
+zip \
+&& rm -rf /var/lib/apt/lists/*
+SHELL ["/bin/bash", "-c"]
+
+# install rtabmap and nav2 packages and also ros2 gazebo plugins
+RUN apt install ros-humble-rtabmap-ros ros-humble-nav2-bringup ros-humble-gazebo-ros-* -y
+
+# modify rtabmap.launch.py
+RUN FILE=/opt/ros/humble/share/rtabmap_launch/launch/rtabmap.launch.py && \
+    if [ -f "$FILE" ]; then \
+        sed -i "s/DeclareLaunchArgument('namespace',\s*default_value='rtabmap',\s*description='')/DeclareLaunchArgument('namespace', default_value='', description='')/" "$FILE"; \
+    else \
+        echo "⚠️ File not found: $FILE, skipping modification"; \
+    fi
+
+# install tmux
+RUN apt install tmux -y
+
+# upgrade scipy
+RUN pip install --upgrade scipy
+
+# install colcon build tool
+RUN apt-get install -y python3-pip python3-colcon-common-extensions 
+
+# clear chache to reduce image size
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+# Default command
+CMD ["/bin/bash"]

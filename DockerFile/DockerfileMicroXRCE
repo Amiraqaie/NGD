@@ -1,0 +1,84 @@
+# Use the official OSRF ROS image
+FROM osrf/ros:humble-desktop
+
+# Set environment variables for ROS
+ENV ROS_DISTRO=humble
+ENV ROS_ROOT=/opt/ros/$ROS_DISTRO
+ENV PATH=$ROS_ROOT/bin:$PATH
+ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
+
+# Update and install common tools
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    vim \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a workspace (optional)
+RUN mkdir -p /root/ros2_ws/src
+WORKDIR /root/ros2_ws/src
+
+# Source ROS setup automatically
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+# change to workspace src directory
+WORKDIR /root
+
+# install bash and some requirements
+RUN apt-get update && apt-get install -y bash
+RUN apt-get update && apt-get install -y \
+build-essential \
+cmake \
+ninja-build \
+python3-venv \
+python3-pip \
+wget \
+unzip \
+zip \
+&& rm -rf /var/lib/apt/lists/*
+SHELL ["/bin/bash", "-c"]
+
+# install tmux
+RUN apt install tmux -y
+
+# install MicroXRCE-DDS
+RUN pip install --user -U empy==3.3.4 pyros-genmsg setuptools
+RUN git clone -b v2.4.3 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
+WORKDIR /root/Micro-XRCE-DDS-Agent
+RUN mkdir build
+WORKDIR /root/Micro-XRCE-DDS-Agent/build
+RUN cmake ..
+RUN make
+RUN sudo make install
+RUN sudo ldconfig /usr/local/lib/
+WORKDIR /root
+RUN rm -rf /root/Micro-XRCE-DDS-Agent
+
+# upgrade scipy
+RUN pip install --upgrade scipy
+
+# install colcon build tool
+RUN apt-get install -y python3-pip python3-colcon-common-extensions 
+
+# install px4_msgs and build
+RUN python3 -m pip install --upgrade pip
+RUN python3 -m pip install --upgrade setuptools wheel twine check-wheel-contents
+WORKDIR /root/ros2_ws/src
+RUN git clone https://github.com/PX4/px4_msgs.git
+
+# clear chache to reduce image size
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# build and install ceres ros2 humble version
+WORKDIR /root/ros2_ws
+RUN source /opt/ros/humble/setup.bash && colcon build
+RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+RUN rm -rf /root/ros2_ws/build /root/ros2_ws/logs 
+
+# Default command
+CMD ["/bin/bash"]

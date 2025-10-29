@@ -75,32 +75,8 @@ RUN FILE=/root/PX4-Autopilot/src/modules/simulation/simulator_mavlink/sitl_targe
 RUN FILE=/root/PX4-Autopilot/src/modules/simulation/simulator_mavlink/sitl_targets_gazebo-classic.cmake && \
     grep -Fxq 'apt' "$FILE" || sed -i '/ksql_airport/a apt' "$FILE"    
 
-# install rtabmap and nav2 packages and also ros2 gazebo plugins
-RUN apt install ros-humble-rtabmap-ros ros-humble-nav2-bringup ros-humble-gazebo-ros-* -y
-
-# modify rtabmap.launch.py
-RUN FILE=/opt/ros/humble/share/rtabmap_launch/launch/rtabmap.launch.py && \
-    if [ -f "$FILE" ]; then \
-        sed -i "s/DeclareLaunchArgument('namespace',\s*default_value='rtabmap',\s*description='')/DeclareLaunchArgument('namespace', default_value='', description='')/" "$FILE"; \
-    else \
-        echo "⚠️ File not found: $FILE, skipping modification"; \
-    fi
-
 # install tmux
 RUN apt install tmux -y
-
-# install MicroXRCE-DDS
-RUN pip install --user -U empy==3.3.4 pyros-genmsg setuptools
-RUN git clone -b v2.4.3 https://github.com/eProsima/Micro-XRCE-DDS-Agent.git
-WORKDIR /root/Micro-XRCE-DDS-Agent
-RUN mkdir build
-WORKDIR /root/Micro-XRCE-DDS-Agent/build
-RUN cmake ..
-RUN make
-RUN sudo make install
-RUN sudo ldconfig /usr/local/lib/
-WORKDIR /root
-RUN rm -rf /root/Micro-XRCE-DDS-Agent
 
 # make px4_sitl and clone neccesory github repos
 WORKDIR /root/PX4-Autopilot
@@ -113,40 +89,9 @@ RUN pip install --upgrade scipy
 # install colcon build tool
 RUN apt-get install -y python3-pip python3-colcon-common-extensions 
 
-# install px4_msgs and build
-RUN python3 -m pip install --upgrade pip
-RUN python3 -m pip install --upgrade setuptools wheel twine check-wheel-contents
-WORKDIR /root/ros2_ws/src
-RUN git clone https://github.com/PX4/px4_msgs.git
-
-# install openvins prerequirments (ceres 2.0.0)
-RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libtbb-dev
-ENV CERES_VERSION="2.0.0"
-WORKDIR /root/
-RUN git clone https://ceres-solver.googlesource.com/ceres-solver
-WORKDIR /root/ceres-solver
-RUN git checkout tags/${CERES_VERSION}
-RUN sed -i 's/tbb_stddef\.h/version.h/g' cmake/FindTBB.cmake
-RUN mkdir build
-WORKDIR /root/ceres-solver/build
-RUN cmake ..
-RUN make
-RUN make install
-RUN rm -rf /root/ceres-solver
-
 # clear chache to reduce image size
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
-
-# build and install ceres ros2 humble version
-WORKDIR /root/ros2_ws/src
-RUN git clone https://github.com/rpng/open_vins/
-WORKDIR /root/ros2_ws
-RUN find . -type f -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs sed -i 's|#include <tf2_geometry_msgs/tf2_geometry_msgs\.h>|#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>|g'
-RUN source /opt/ros/humble/setup.bash && colcon build
-RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
-RUN rm -rf /root/ros2_ws/build /root/ros2_ws/logs 
 
 # Default command
 CMD ["/bin/bash"]

@@ -29,27 +29,80 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
-      # 4️⃣ Build and push image
-      - name: Build and Push Docker Image (with cache)
+      # # 4️⃣ Build and push image
+      # - name: Build and Push Docker Image (with cache)
+      #   uses: docker/build-push-action@v6
+      #   with:
+      #     context: .
+      #     file: ./DockerFile/Dockerfile
+      #     push: true
+      #     tags: |
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:latest
+      #       ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:${{ github.run_number }}
+      #     cache-from: type=gha
+      #     cache-to: type=gha,mode=max
+
+      # --- 1️⃣ MicroXRCE ---
+      - name: Build & Push MicroXRCE
         uses: docker/build-push-action@v6
         with:
           context: .
-          file: ./DockerFile/Dockerfile
+          file: ./DockerFile/DockerfileMicroXRCE
           push: true
           tags: |
-            ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:latest
-            ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:${{ github.run_number }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          
+            ${{ secrets.DOCKERHUB_USERNAME }}/microxrce:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/microxrce:${{ github.run_number }}
+          cache-from: type=gha,scope=microxrce
+          cache-to: type=gha,mode=max,scope=microxrce
 
-      # 5️⃣ Run PX4 SITL build test inside the container
-      - name: Test PX4 SITL build
-        run: |
-          docker run --rm \
-            ${{ secrets.DOCKERHUB_USERNAME }}/ngd_simulation:latest \
-            bash -c "cd /root/PX4-Autopilot && make px4_sitl"
+      # purge unused data to reclaim space
+      - name: Cleanup Docker space (after MicroXRCE)
+        run: docker system prune -af
 
-      # 6️⃣ (Optional) Print image digest
-      - name: Image digest
-        run: echo "Image pushed with digest ${{ steps.build.outputs.digest }}"
+
+      # --- 2️⃣ OpenVINS ---
+      - name: Build & Push OpenVINS
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./DockerFile/DockerfileOpenVINS
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/openvins:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/openvins:${{ github.run_number }}
+          cache-from: type=gha,scope=openvins
+          cache-to: type=gha,mode=max,scope=openvins
+
+      - name: Cleanup Docker space (after OpenVINS)
+        run: docker system prune -af
+
+
+      # --- 3️⃣ RtabMap ---
+      - name: Build & Push RtabMap
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./DockerFile/DockerfileRtabMap
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/rtabmap:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/rtabmap:${{ github.run_number }}
+          cache-from: type=gha,scope=rtabmap
+          cache-to: type=gha,mode=max,scope=rtabmap
+
+      - name: Cleanup Docker space (after RtabMap)
+        run: docker system prune -af
+
+
+      # --- 4️⃣ Simulation ---
+      - name: Build & Push Simulation
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./DockerFile/DockerfileSimulation
+          push: true
+          tags: |
+            ${{ secrets.DOCKERHUB_USERNAME }}/simulation:latest
+            ${{ secrets.DOCKERHUB_USERNAME }}/simulation:${{ github.run_number }}
+          cache-from: type=gha,scope=simulation
+          cache-to: type=gha,mode=max,scope=simulation

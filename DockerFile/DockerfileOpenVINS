@@ -1,0 +1,83 @@
+# Use the official OSRF ROS image
+FROM osrf/ros:humble-desktop
+
+# Set environment variables for ROS
+ENV ROS_DISTRO=humble
+ENV ROS_ROOT=/opt/ros/$ROS_DISTRO
+ENV PATH=$ROS_ROOT/bin:$PATH
+ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
+ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
+
+# Update and install common tools
+RUN apt-get update && apt-get install -y \
+    python3-pip \
+    vim \
+    git \
+    curl \
+    && rm -rf /var/lib/apt/lists/*
+
+# Create a workspace (optional)
+RUN mkdir -p /root/ros2_ws/src
+WORKDIR /root/ros2_ws/src
+
+# Source ROS setup automatically
+SHELL ["/bin/bash", "-c"]
+RUN echo "source /opt/ros/$ROS_DISTRO/setup.bash" >> ~/.bashrc
+
+# change to workspace src directory
+WORKDIR /root
+
+# install bash and some requirements
+RUN apt-get update && apt-get install -y bash
+RUN apt-get update && apt-get install -y \
+build-essential \
+cmake \
+ninja-build \
+python3-venv \
+python3-pip \
+wget \
+unzip \
+zip \
+&& rm -rf /var/lib/apt/lists/*
+SHELL ["/bin/bash", "-c"]
+
+# install tmux
+RUN apt install tmux -y
+
+# upgrade scipy
+RUN pip install --upgrade scipy
+
+# install colcon build tool
+RUN apt-get install -y python3-pip python3-colcon-common-extensions 
+
+# install openvins prerequirments (ceres 2.0.0)
+RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libtbb-dev
+ENV CERES_VERSION="2.0.0"
+WORKDIR /root/
+RUN git clone https://ceres-solver.googlesource.com/ceres-solver
+WORKDIR /root/ceres-solver
+RUN git checkout tags/${CERES_VERSION}
+RUN sed -i 's/tbb_stddef\.h/version.h/g' cmake/FindTBB.cmake
+RUN mkdir build
+WORKDIR /root/ceres-solver/build
+RUN cmake ..
+RUN make
+RUN make install
+RUN rm -rf /root/ceres-solver
+
+# clear chache to reduce image size
+RUN apt-get clean
+RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
+
+
+# build and install ceres ros2 humble version
+WORKDIR /root/ros2_ws/src
+RUN git clone https://github.com/rpng/open_vins/
+WORKDIR /root/ros2_ws
+RUN find . -type f -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs sed -i 's|#include <tf2_geometry_msgs/tf2_geometry_msgs\.h>|#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>|g'
+RUN source /opt/ros/humble/setup.bash && colcon build
+RUN echo "source /root/ros2_ws/install/setup.bash" >> ~/.bashrc
+RUN rm -rf /root/ros2_ws/build /root/ros2_ws/logs 
+
+# Default command
+CMD ["/bin/bash"]

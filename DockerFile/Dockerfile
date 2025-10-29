@@ -126,6 +126,7 @@ WORKDIR /root/
 RUN git clone https://ceres-solver.googlesource.com/ceres-solver
 WORKDIR /root/ceres-solver
 RUN git checkout tags/${CERES_VERSION}
+RUN sed -i 's/tbb_stddef\.h/version.h/g' cmake/FindTBB.cmake
 RUN mkdir build
 WORKDIR /root/ceres-solver/build
 RUN cmake ..

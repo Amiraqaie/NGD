@@ -119,9 +119,9 @@
       <kinematic>0</kinematic>
     </link>
     <link name="imu_link">
-      <pose>0.0 0.0 0.0 0 0.3 0</pose>
+      <pose>0.115 -0.00 0.013 0 0.3 0</pose>
       <inertial>
-        <pose>0.0 -0.0 0.0 0 0.3 0</pose>
+        <pose>0.115 -0.00 0.013 0 0.3 0</pose>
         <inertia>
           <ixx>0.001</ixx>
           <ixy>0.000</ixy>
@@ -200,6 +200,16 @@
         <mass>0.035</mass>
       </inertial>
     </link>
+
+<!-- 
+R_cam_imu = [ 0   0   1;
+             -1   0   0;
+              0  -1   0]
+
+t_cam0_imu = [0.05
+              0.0
+              0.0]
+ -->
 
     <!-- <link name="camera_rgb_frame">
       <pose>0.115 0.018 0.013 0 0.3 0</pose>
@@ -470,22 +480,22 @@
       </axis>
     </joint>
 
-    <joint name="camera_rgb_joint" type="fixed">
+    <!-- <joint name="camera_rgb_joint" type="fixed">
       <parent>camera_link</parent>
       <child>camera_rgb_frame</child>
       <pose>0.0 0.0 0.0 0 0 0</pose>
       <axis>
         <xyz>0 0 1</xyz>
       </axis>
-    </joint>
-    <joint name="camera_rgb_optical_joint" type="fixed">
+    </joint> -->
+    <!-- <joint name="camera_rgb_optical_joint" type="fixed">
       <parent>camera_rgb_frame</parent>
       <child>camera_rgb_optical_frame</child>
       <pose>0 0 0 0 0 0</pose>
       <axis>
         <xyz>0 0 1</xyz>
       </axis>
-    </joint>
+    </joint> -->
 
     <!-- <joint name="camera_left_joint" type="fixed">
       <parent>camera_link</parent>

@@ -77,7 +77,7 @@ RUN FILE=/root/PX4-Autopilot/src/modules/simulation/simulator_mavlink/sitl_targe
     grep -Fxq 'apt' "$FILE" || sed -i '/ksql_airport/a apt' "$FILE"    
 
 # install tmux
-RUN apt install tmux -y
+RUN apt-get update && apt-get install tmux -y
 
 # make px4_sitl and clone neccesory github repos
 WORKDIR /root/PX4-Autopilot

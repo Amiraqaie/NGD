@@ -43,7 +43,7 @@ zip \
 SHELL ["/bin/bash", "-c"]
 
 # install tmux
-RUN apt-get install tmux -y
+RUN apt-get update && apt-get install tmux -y
 
 # install MicroXRCE-DDS
 RUN pip install --user -U empy==3.3.4 pyros-genmsg setuptools

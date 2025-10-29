@@ -43,7 +43,7 @@ zip \
 SHELL ["/bin/bash", "-c"]
 
 # install tmux
-RUN apt install tmux -y
+RUN apt-get update && apt-get install tmux -y
 
 # upgrade scipy
 RUN pip install --upgrade scipy

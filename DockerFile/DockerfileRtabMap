@@ -54,7 +54,7 @@ RUN FILE=/opt/ros/humble/share/rtabmap_launch/launch/rtabmap.launch.py && \
     fi
 
 # install tmux
-RUN apt install tmux -y
+RUN apt-get update && apt-get install tmux -y
 
 # upgrade scipy
 RUN pip install --upgrade scipy

@@ -202,13 +202,23 @@
     </link>
 
 <!-- 
-R_cam_imu = [ 0   0   1;
+t_imu_cam0 = [0.0
+              0.05
+              0.0]
+              
+R_imu_cam = [ 0   0   1;
              -1   0   0;
               0  -1   0]
+
 
 t_cam0_imu = [0.05
               0.0
               0.0]
+
+R_cam_imu = [ 0   -1    0;
+              0    0   -1;
+              1    0    0]
+
  -->
 
     <!-- <link name="camera_rgb_frame">

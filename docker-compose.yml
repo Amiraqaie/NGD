@@ -13,7 +13,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -30,7 +30,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -47,7 +47,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -64,7 +64,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -104,7 +104,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -121,7 +121,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -138,7 +138,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -146,7 +146,7 @@ services:
   offboard_script:
     image: amiraqaie1376/microxrce:latest   # Offboard control uses MicroXRCE agent
     container_name: offboard_script
-    command: bash -c "source /opt/ros/humble/setup.bash && python3 /root/scripts/microxrce_test.py --OffboardControllEnable False --TakeoffHeight 1.0"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/microxrce_test.py --OffboardControllEnable False --TakeoffHeight 1.0"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -155,7 +155,7 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
     tty: true
     ipc: host
     pid: host
@@ -172,7 +172,25 @@ services:
     network_mode: host
     devices:
       - /dev/dri:/dev/dri
-    stdin_open: true
+    stdin_open: false
+    tty: true
+    ipc: host
+    pid: host
+
+  openvins:
+    image: amiraqaie1376/openvins:latest
+    container_name: openvins
+    command: bash -c "source /opt/ros/humble/setup.bash"
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./scripts:/root/scripts
+      - ./config:/root/config
+    network_mode: host
+    devices:
+      - /dev/dri:/dev/dri
+    stdin_open: false
     tty: true
     ipc: host
     pid: host

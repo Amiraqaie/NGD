@@ -1,0 +1,42 @@
+version: "3.8"
+
+services:  
+  rtabmap:
+    image: amiraqaie1376/rtabmap:latest     # RtabMap SLAM container
+    container_name: rtabmap
+    command: bash -c "source /opt/ros/humble/setup.bash  && ros2 launch rtabmap_launch rtabmap.launch.py  args:='-d \
+                      --Vis/MaxFeatures               200   --Kp/MaxFeatures          200   \
+                      --Vis/CorType                   0    --Cloud/MinDepth          0.2   \
+                      --Cloud/MaxDepth                4.0  --Cloud/VoxelSize         0.05  \
+                      --Cloud/NoiseFilterRadius       0.05  --Cloud/NoiseFilterMinNeighbors   10 \
+                      --Optimizer/GravitySigma        0.3   --Grid/MapFrameProjection true  \
+                      --Grid/NormalsSegmentation      false --Grid/MaxGroundHeight    0.5   \
+                      --Grid/cellSize                 0.1   --Grid/RangeMax           4.0   \
+                      --Grid/3D                       false --Grid/RayTracing         true  \
+                      --Grid/MaxObstacleHeight        1.5   --Kp/MaxDepth             4.0   \
+                      --Stereo/MaxDisparity           128   --Stereo/MinDisparity     0.5 '  \
+                      stereo:=true  use_sim_time:=True \
+                      left_image_topic:=/stereo/left/uncalibrated_image \
+                      right_image_topic:=/stereo/right/uncalibrated_image \
+                      left_camera_info_topic:=/stereo/left/uncalibrated_camera_info \
+                      right_camera_info_topic:=/stereo/right/uncalibrated_camera_info \
+                      imu_topic:=/imu \
+                      frame_id:=base_link \
+                      approx_sync:=true \
+                      wait_imu_to_init:=false \
+                      approx_sync_max_interval:=0.001 \
+                      qos:=2 \
+                      rtabmapviz:=false \
+                      rviz:=true"
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./scripts:/root/scripts
+    network_mode: host
+    devices:
+      - /dev/dri:/dev/dri
+    stdin_open: true
+    tty: true
+    ipc: host
+    pid: host

@@ -1,0 +1,36 @@
+version: "3.8"
+
+services:  
+  nav2_bringup:
+    image: amiraqaie1376/rtabmap:latest
+    container_name: nav2_bringup
+    command: bash -c "source /opt/ros/humble/setup.bash && ros2 launch nav2_bringup navigation_launch.py use_sim_time:=True"
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./scripts:/root/scripts
+    network_mode: host
+    devices:
+      - /dev/dri:/dev/dri
+    stdin_open: true
+    tty: true
+    ipc: host
+    pid: host
+
+  nav2_rviz:
+    image: amiraqaie1376/rtabmap:latest
+    container_name: nav2_rviz
+    command: bash -c "source /opt/ros/humble/setup.bash && ros2 launch nav2_bringup rviz_launch.py use_sim_time:=True"
+    environment:
+      - DISPLAY=${DISPLAY}
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./scripts:/root/scripts
+    network_mode: host
+    devices:
+      - /dev/dri:/dev/dri
+    stdin_open: true
+    tty: true
+    ipc: host
+    pid: host

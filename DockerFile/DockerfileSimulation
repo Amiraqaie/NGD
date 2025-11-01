@@ -84,14 +84,6 @@ RUN apt-get update && apt-get install tmux -y
 
 # make px4_sitl and clone neccesory github repos
 WORKDIR /root/PX4-Autopilot
-RUN make -j8 px4_sitl
-RUN rm -rf /root/PX4-Autopilot/build
-
-# upgrade scipy
-RUN pip install --upgrade scipy
-
-# install colcon build tool
-RUN apt-get install -y python3-pip python3-colcon-common-extensions 
 
 # clear chache to reduce image size
 RUN apt-get clean

@@ -42,12 +42,6 @@ zip \
 && rm -rf /var/lib/apt/lists/*
 SHELL ["/bin/bash", "-c"]
 
-# install tmux
-RUN apt-get update && apt-get install tmux -y
-
-# upgrade scipy
-RUN pip install --upgrade scipy
-
 # install colcon build tool
 RUN apt-get install -y python3-pip python3-colcon-common-extensions 
 
@@ -69,7 +63,6 @@ RUN rm -rf /root/ceres-solver
 # clear chache to reduce image size
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
-
 
 # build and install ceres ros2 humble version
 WORKDIR /root/ros2_ws/src

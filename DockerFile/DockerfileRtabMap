@@ -53,15 +53,6 @@ RUN FILE=/opt/ros/humble/share/rtabmap_launch/launch/rtabmap.launch.py && \
         echo "⚠️ File not found: $FILE, skipping modification"; \
     fi
 
-# install tmux
-RUN apt-get update && apt-get install tmux -y
-
-# upgrade scipy
-RUN pip install --upgrade scipy
-
-# install colcon build tool
-RUN apt-get update && apt-get install -y python3-pip python3-colcon-common-extensions 
-
 # clear chache to reduce image size
 RUN apt-get clean
 RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*

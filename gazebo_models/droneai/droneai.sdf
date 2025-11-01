@@ -140,19 +140,19 @@
             <x>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>2e-4</stddev>
+                <stddev>1.6968e-04</stddev>
               </noise>
             </x>
             <y>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>2e-4</stddev>
+                <stddev>1.6968e-04</stddev>
               </noise>
             </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>2e-4</stddev>
+                <stddev>1.6968e-04</stddev>
               </noise>
             </z>
           </angular_velocity>
@@ -160,19 +160,19 @@
             <x>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>1.7e-2</stddev>
+                <stddev>2.0000e-3</stddev>
               </noise>
             </x>
             <y>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>1.7e-2</stddev>
+                <stddev>2.0000e-3</stddev>
               </noise>
             </y>
             <z>
               <noise type="gaussian">
                 <mean>0.0</mean>
-                <stddev>1.7e-2</stddev>
+                <stddev>2.0000e-3</stddev>
               </noise>
             </z>
           </linear_acceleration>

@@ -9,7 +9,6 @@ ENV LD_LIBRARY_PATH=$ROS_ROOT/lib:$LD_LIBRARY_PATH
 ENV PYTHONPATH=$ROS_ROOT/lib/python3/dist-packages:$PYTHONPATH
 
 # Update and install common tools
-RUN apt update
 RUN apt-get update && apt-get install -y \
     python3-pip \
     vim \
@@ -43,10 +42,10 @@ zip \
 SHELL ["/bin/bash", "-c"]
 
 # install colcon build tool
-RUN apt-get install -y python3-pip python3-colcon-common-extensions 
+RUN apt-get update && apt-get install -y python3-pip python3-colcon-common-extensions 
 
 # install openvins prerequirments (ceres 2.0.0)
-RUN apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libtbb-dev
+RUN apt-get update && apt-get install -y cmake libgoogle-glog-dev libgflags-dev libatlas-base-dev libeigen3-dev libsuitesparse-dev libtbb-dev
 ENV CERES_VERSION="2.0.0"
 WORKDIR /root/
 RUN git clone https://ceres-solver.googlesource.com/ceres-solver

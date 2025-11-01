@@ -74,6 +74,12 @@ RUN rm -rf /var/lib/apt/lists/* /tmp/* /var/tmp/*
 # build and install ceres ros2 humble version
 WORKDIR /root/ros2_ws/src
 RUN git clone https://github.com/rpng/open_vins/
+WORKDIR /root/ros2_ws/src/open_vins/config
+RUN mkdir droneai_config
+WORKDIR /root/ros2_ws/src/open_vins/config/droneai_config
+COPY ../config/estimator_config.yaml /root/ros2_ws/src/open_vins/config/droneai_config/estimator_config.yaml
+COPY ../config/kalibr_imu_chain.yaml /root/ros2_ws/src/open_vins/config/droneai_config/kalibr_imu_chain.yaml
+COPY ../config/kalibr_imucam_chain.yaml /root/ros2_ws/src/open_vins/config/droneai_config/kalibr_imucam_chain.yaml
 WORKDIR /root/ros2_ws
 RUN find . -type f -name "*.cpp" -o -name "*.h" -o -name "*.hpp" | xargs sed -i 's|#include <tf2_geometry_msgs/tf2_geometry_msgs\.h>|#include <tf2_geometry_msgs/tf2_geometry_msgs.hpp>|g'
 RUN source /opt/ros/humble/setup.bash && colcon build

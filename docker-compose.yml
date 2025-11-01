@@ -180,7 +180,7 @@ services:
   openvins:
     image: amiraqaie1376/openvins:latest
     container_name: openvins
-    command: bash -c "source /opt/ros/humble/setup.bash"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && ros2 launch ov_msckf subscribe.launch.py config:=droneai_config"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:

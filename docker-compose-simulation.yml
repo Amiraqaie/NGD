@@ -4,7 +4,7 @@ services:
   px4_simulation:
     image: amiraqaie1376/simulation:latest   # PX4-SITL main simulation image
     container_name: px4_simulation
-    command: bash -c "cd /root/PX4-Autopilot && make px4_sitl gazebo-classic_droneai__apt"
+    command: bash -c "cd /root/PX4-Autopilot && HEADLESS=1 make px4_sitl gazebo-classic_droneai__apt"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:
@@ -72,7 +72,7 @@ services:
   offboard_script:
     image: amiraqaie1376/microxrce:latest   # Offboard control uses MicroXRCE agent
     container_name: offboard_script
-    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/microxrce_test.py --OffboardControllEnable False --TakeoffHeight 1.0"
+    command: bash -c "source /opt/ros/humble/setup.bash && source /root/ros2_ws/install/setup.bash && python3 /root/scripts/px4_vio.py --OffboardControllEnable False --TakeoffHeight 1.0 --SLAM openvins"
     environment:
       - DISPLAY=${DISPLAY}
     volumes:

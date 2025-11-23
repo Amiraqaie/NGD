@@ -41,17 +41,218 @@ def parse_args():
                         type=float, 
                         help='TakeOff flight height')
     
+    parser.add_argument("--SLAM", 
+                        default="rtabmap",
+                        type=str,
+                        help="what algorithm is used for slam")
+    
     args = parser.parse_args()
     return args
 
+args = parse_args()
 camera_info = "/camera/camera_info"
 
-class OffboardControll(Node):
+class OpenVinsPx4(Node):
 
     def __init__(self):
         super().__init__('minimal_publisher')
 
-        args = parse_args()
+        qos_profile1 = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.VOLATILE,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+
+        qos_profile2 = QoSProfile(
+            reliability=QoSReliabilityPolicy.BEST_EFFORT,
+            durability=QoSDurabilityPolicy.TRANSIENT_LOCAL,
+            history=QoSHistoryPolicy.KEEP_LAST,
+            depth=1
+        )
+
+        # Create Subscribtions nodes
+        self.subscriber_vio_odometry = self.create_subscription(Odometry,
+                                                                '/ov_msckf/odomimu',
+                                                                self.slam_odom_callback,
+                                                                qos_profile1)
+        
+        
+        self.subscriber_camera_timestamp = self.create_subscription(CameraInfo,
+                                                                    camera_info,
+                                                                    self.timestamp_update,
+                                                                    qos_profile1)
+        
+        self.subscriber_vehicle_odometry = self.create_subscription(VehicleOdometry,
+                                                                    '/fmu/out/vehicle_odometry',
+                                                                    self.vehicle_odometry_callback,
+                                                                    qos_profile1)
+
+        # Create publications nodes
+        self.publiser_slam_odom = self.create_publisher(VehicleOdometry,
+                                                        '/fmu/in/vehicle_visual_odometry',
+                                                        qos_profile2)
+        
+
+        # Define initial parameters
+        self._logger.info("initiated the openvins odometry publisher to px4")
+        self.tf_broadcaster = TransformBroadcaster(self)
+        self.vio_odometry = Odometry()
+        self.vehilcle_odometry_zero = None
+        self.T_BvBp = np.array([[1, 0, 0], 
+                                [0, -1, 0], 
+                                [0, 0, -1]])
+        self.T_BpBv = np.transpose(self.T_BvBp)
+        self.T_RpBp_zero = R.from_quat([0, 0, 0, 1]).as_matrix()
+        self.T_RpRv = None
+        self.timestamp = None
+        self.IS_ODOM_LOST = False
+
+    def slam_odom_callback(self, msg):
+
+        # update the vio properties
+        if msg.pose.pose.orientation.x != 0 \
+            or msg.pose.pose.orientation.y != 0 \
+            or msg.pose.pose.orientation.z != 0 \
+            or msg.pose.pose.orientation.w != 0 :
+            self.vio_odometry = msg
+            self.IS_ODOM_LOST = False
+        else:
+            # activating recovery mode if ODOM is lost 
+            self.IS_ODOM_LOST = True
+
+        # saving vio last timestamp
+        self.vio_time_stamp = int(Clock().now().nanoseconds / 1000)
+
+        # calculating the transfor matrixes
+        self.q = np.array([self.vio_odometry.pose.pose.orientation.x, 
+                           self.vio_odometry.pose.pose.orientation.y, 
+                           self.vio_odometry.pose.pose.orientation.z, 
+                           self.vio_odometry.pose.pose.orientation.w], 
+                           dtype=np.float32)
+        
+        self.T_RvBv = R.from_quat(self.q).as_matrix()
+
+        x = np.dot(self.T_RpBp_zero, np.transpose(self.T_BvBp))
+
+        y = np.dot(x, self.T_RvBv)
+
+        self.T_RpBp = np.dot(y, self.T_BvBp)
+
+        # publishing the odom to autopilot
+        self.callback_loop()
+
+    def timestamp_update(self, msg):
+
+        # updating he timestamp 
+        self.timestamp = msg.header.stamp
+
+    def vehicle_odometry_callback(self, msg):
+
+        # first get the T_RpBp_zero
+        if self.vehilcle_odometry_zero is None:
+            self.vehilcle_odometry_zero = msg
+            self.fmu_q_zero =np.array([self.vehilcle_odometry_zero.q[1], self.vehilcle_odometry_zero.q[2], self.vehilcle_odometry_zero.q[3], self.vehilcle_odometry_zero.q[0]])
+            self.T_RpBp_zero = R.from_quat(self.fmu_q_zero).as_matrix()
+            self.T_RpRv = np.dot(self.T_RpBp_zero, np.transpose(self.T_BvBp))
+            print(time.time(),"  T_RpBp_zero is going to set equal to : \n", self.T_RpBp_zero)
+        else:
+            pass
+
+        # then publish update vehicle odometry variable
+        self.vehicle_odometry = msg
+        self.fmu_q =np.array([self.vehicle_odometry.q[1], self.vehicle_odometry.q[2], self.vehicle_odometry.q[3], self.vehicle_odometry.q[0]])
+        self.T_RpBp_fusion = R.from_quat(self.fmu_q).as_matrix()
+
+    def callback_loop(self):
+
+        # calculating odometry in NED frame and publish it to autopilot
+        if (self.T_RpRv is not None) and \
+            (not np.array_equal(self.T_RpBp_zero, np.ones_like(self.T_RpBp_zero))) and \
+            not self.IS_ODOM_LOST:
+            self.rtps_odometry_in = VehicleOdometry()
+            self.rtps_odometry_in.timestamp = self.vio_time_stamp
+            self.rtps_odometry_in.timestamp_sample = self.vio_time_stamp
+            self.rtps_odometry_in.pose_frame = 1
+            self.r_rv = np.array([self.vio_odometry.pose.pose.position.x, 
+                                  self.vio_odometry.pose.pose.position.y, 
+                                  self.vio_odometry.pose.pose.position.z])
+            self.r_rp = np.dot(self.T_RpRv, np.transpose(self.r_rv))
+            self.rtps_odometry_in.position[0] = self.r_rp[0]
+            self.rtps_odometry_in.position[1] = self.r_rp[1]
+            self.rtps_odometry_in.position[2] = self.r_rp[2]
+            q = R.from_matrix(self.T_RpBp).as_quat()
+            self.euler = R.from_quat(q).as_euler('xyz', degrees=True)
+            self.rtps_odometry_in.q = np.array([q[3], q[0], q[1], q[2]], dtype=np.float32)
+            self.rtps_odometry_in.velocity_frame = 3
+            self.v_bv = np.array([self.vio_odometry.twist.twist.linear.x, 
+                                  self.vio_odometry.twist.twist.linear.y, 
+                                  self.vio_odometry.twist.twist.linear.z])
+            self.v_bp = np.dot(self.T_BpBv, np.transpose(self.v_bv))
+            self.rtps_odometry_in.velocity[0] = self.v_bp[0]
+            self.rtps_odometry_in.velocity[1] = self.v_bp[1]
+            self.rtps_odometry_in.velocity[2] = self.v_bp[2]
+            self.angular_bv = np.array([self.vio_odometry.twist.twist.angular.x, 
+                                        self.vio_odometry.twist.twist.angular.y, 
+                                        self.vio_odometry.twist.twist.angular.z])
+            self.angular_bp = np.dot(self.T_BpBv, np.transpose(self.angular_bv))
+            self.rtps_odometry_in.angular_velocity[0] = self.angular_bp[0]
+            self.rtps_odometry_in.angular_velocity[1] = self.angular_bp[1]
+            self.rtps_odometry_in.angular_velocity[2] = self.angular_bp[2]
+            self.vio_pose_variance = np.array([
+                self.vio_odometry.pose.covariance[0],
+                self.vio_odometry.pose.covariance[7],
+                self.vio_odometry.pose.covariance[14]
+            ])
+            self.vio_orientation_variance = np.array([
+                self.vio_odometry.pose.covariance[21],
+                self.vio_odometry.pose.covariance[28],
+                self.vio_odometry.pose.covariance[35]
+            ])
+            self.vio_velocity_variance = np.array([
+                self.vio_odometry.twist.covariance[0],
+                self.vio_odometry.twist.covariance[7],
+                self.vio_odometry.twist.covariance[14]
+            ])
+            # self.vio_angular_variance = np.array([
+            #     self.vio_odometry.twist.covariance[21],
+            #     self.vio_odometry.twist.covariance[28],
+            #     self.vio_odometry.twist.covariance[35]
+            # ])
+
+            self.px4_pose_variance = np.dot(np.dot(self.T_RpRv, np.transpose(self.vio_pose_variance)), np.transpose(self.T_RpRv))
+            self.px4_orientation_variance = np.dot(np.dot(self.T_BpBv, np.transpose(self.vio_orientation_variance)), np.transpose(self.T_BpBv))
+            self.px4_velocity_variance = np.dot(np.dot(self.T_BpBv, np.transpose(self.vio_velocity_variance)), np.transpose(self.T_BpBv))
+            # self.px4_angular_variance = np.dot(self.T_BpBv, np.transpose(self.vio_angular_variance))
+
+            self.rtps_odometry_in.position_variance[0] = self.px4_pose_variance[0]
+            self.rtps_odometry_in.position_variance[1] = self.px4_pose_variance[1]
+            self.rtps_odometry_in.position_variance[2] = self.px4_pose_variance[2]
+            self.rtps_odometry_in.orientation_variance[0] = self.px4_orientation_variance[0]
+            self.rtps_odometry_in.orientation_variance[1] = self.px4_orientation_variance[1]
+            self.rtps_odometry_in.orientation_variance[2] = self.px4_orientation_variance[2]
+            self.rtps_odometry_in.velocity_variance[0] = self.px4_velocity_variance[0]
+            self.rtps_odometry_in.velocity_variance[1] = self.px4_velocity_variance[1]
+            self.rtps_odometry_in.velocity_variance[2] = self.px4_velocity_variance[2]
+
+            # self.rtps_odometry_in.position_variance[0] = self.vio_odometry.pose.covariance[0]
+            # self.rtps_odometry_in.position_variance[1] = self.vio_odometry.pose.covariance[0]
+            # self.rtps_odometry_in.position_variance[2] = self.vio_odometry.pose.covariance[0]
+            # self.rtps_odometry_in.orientation_variance[0] = self.vio_odometry.pose.covariance[-1]
+            # self.rtps_odometry_in.orientation_variance[1] = self.vio_odometry.pose.covariance[-1]
+            # self.rtps_odometry_in.orientation_variance[2] = self.vio_odometry.pose.covariance[-1]
+            # self.rtps_odometry_in.velocity_variance[0] = self.vio_odometry.pose.covariance[0]
+            # self.rtps_odometry_in.velocity_variance[1] = self.vio_odometry.pose.covariance[0]
+            # self.rtps_odometry_in.velocity_variance[2] = self.vio_odometry.pose.covariance[0]
+            self.rtps_odometry_in.reset_counter = 4
+            self.publiser_slam_odom.publish(self.rtps_odometry_in)
+        elif self.IS_ODOM_LOST:
+            print(time.time(),"  ODOMETRY is lost !!!")
+
+class RtabmapPX4(Node):
+
+    def __init__(self):
+        super().__init__('minimal_publisher')
 
         qos_profile1 = QoSProfile(
             reliability=QoSReliabilityPolicy.BEST_EFFORT,
@@ -526,11 +727,14 @@ if __name__ == "__main__":
 
     # creating the offboard node
     time.sleep(1)
-    offboard_controll = OffboardControll()
+    if args.SLAM == "rtabmap":
+        node = RtabmapPX4()
+    elif args.SLAM == "openvins":
+        node = OpenVinsPx4()
 
     # spining node
-    rclpy.spin(offboard_controll)
+    rclpy.spin(node)
 
     # destroying node
-    offboard_controll.destroy_node()
+    node.destroy_node()
     rclpy.shutdown()
